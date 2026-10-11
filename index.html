@@ -3,47 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Developer Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Task Manager App</title>
+    <!-- Tailwind CSS CDN for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <header>
-        <nav>
-            <h1>Hello, World! 👋</h1>
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <main>
-        <section id="hero">
-            <h2>I build things for the web.</h2>
-            <p>Welcome to my GitHub-hosted portfolio. Explore my work below!</p>
-            <a href="#projects" class="btn">View Projects</a>
-        </section>
+    <div class="w-full max-w-md bg-slate-800 rounded-xl shadow-2xl p-6 border border-slate-700">
+        <h1 class="text-2xl font-bold mb-6 text-center text-indigo-400">Task Manager 🚀</h1>
 
-        <section id="projects">
-            <h2>Featured Projects</h2>
-            <div class="project-grid">
-                <div class="card">
-                    <h3>Project One</h3>
-                    <p>A brief description of your awesome project built with HTML, CSS, or JavaScript.</p>
-                    <a href="https://github.com" target="_blank">Source Code</a>
-                </div>
-                <div class="card">
-                    <h3>Project Two</h3>
-                    <p>Another incredible project showcasing your problem-solving skills and creativity.</p>
-                    <a href="https://github.com" target="_blank">Source Code</a>
-                </div>
-            </div>
-        </section>
-    </main>
+        <!-- Input Form -->
+        <form id="task-form" class="flex gap-2 mb-6">
+            <input 
+                type="text" 
+                id="task-input" 
+                placeholder="What needs to be done?" 
+                required
+                class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-500"
+            >
+            <button 
+                type="submit" 
+                class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition"
+            >
+                Add
+            </button>
+        </form>
 
-    <footer id="contact">
-        <p>Let's connect! Find me on <a href="https://github.com" target="_blank">GitHub</a>.</p>
-    </footer>
+        <!-- Task List Container -->
+        <ul id="task-list" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+            <!-- Dynamic tasks will load here -->
+        </ul>
+
+        <!-- Empty State Message -->
+        <p id="empty-state" class="text-center text-slate-500 text-sm py-4 hidden">No tasks yet. Enjoy your free time! 🎉</p>
+    </div>
+
+    <script>
+        const taskForm = document.getElementById('task-form');
+        const taskInput = document.getElementById('task-input');
+        const taskList = document.getElementById('task-list');
+        const emptyState = document.getElementById('empty-state');
+
+        // Load saved tasks from browser localStorage
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function saveAndRender() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = `flex items-center justify-between p-3 rounded-lg bg-slate-900 border border-slate-700/50 transition ${task.completed ? 'opacity-60' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <input type="checkbox" onclick="toggleTask(${index})" ${task.completed ? 'checked' : ''} class="w-4 h-4 accent-indigo-500 cursor-pointer">
+                        <span class="truncate ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${escapeHTML(task.text)}</span>
+                    </div>
+                    <button onclick="deleteTask(${index})" class="text-slate-500 hover:text-red-400 p-1 transition">
+                        🗑️
+                    </button>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const text = taskInput.value.trim();
+            if(!text) return;
+            
+            tasks.push({ text, completed: false });
+            taskInput.value = '';
+            saveAndRender();
+        }
+
+        window.toggleTask = function(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveAndRender();
+        }
+
+        window.deleteTask = function(index) {
+            tasks.splice(index, 1);
+            saveAndRender();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        taskForm.addEventListener('submit', addTask);
+        
+        // Initial render on load
+        renderTasks();
+    </script>
 </body>
 </html>
