@@ -1,4 +1,4 @@
-name: Deploy static content to Pages
+name: Deploy Web App to Pages
 
 on:
   push:
